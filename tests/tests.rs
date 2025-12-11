@@ -58,6 +58,7 @@ fn test_config() {
         chunk: 0,
         max_bytes: usize::MAX,
         display_offset: 0,
+        indent: 0,
     };
     assert!(config_hex(&vec![], cfg).is_empty());
     assert_eq!("2425262728", config_hex(&"$%&'(", cfg));
@@ -132,7 +133,8 @@ fn test_config() {
                 group: 2,
                 chunk: 3,
                 max_bytes: usize::MAX,
-                display_offset: 0
+                display_offset: 0,
+                indent: 0,
             }
         ),
         "0000:   000102 030405  060708 090a   ...........\n\
@@ -150,7 +152,8 @@ fn test_config() {
                 group: 3,
                 chunk: 3,
                 max_bytes: usize::MAX,
-                display_offset: 0
+                display_offset: 0,
+                indent: 0,
             }
         ),
         "0000:   000102 030405 060708  090a0b 0c0d0e 0f   ................\n\
@@ -200,9 +203,22 @@ fn test_config() {
     assert_eq!(
         format!("{:?}", v.hex_conf(cfg)),
         "Length: 19 (0x13) bytes\n\
-         0000:   00 01 02 03  04 05 06 07  08 09 0a 0b  0c 0d 0e 0f   ................\n\
-         0010:   10 11 12                                             ..."
-    )
+                     0000:   00 01 02 03  04 05 06 07  08 09 0a 0b  0c 0d 0e 0f   ................\n\
+                     0010:   10 11 12                                             ..."
+    );
+
+    let cfg = HexConfig {
+        indent: 4,
+        max_bytes: 18,
+        ..HexConfig::default()
+    };
+    assert_eq!(
+        format!("{:?}", v.hex_conf(cfg)),
+        r#"    Length: 19 (0x13) bytes
+    0000:   00 01 02 03  04 05 06 07  08 09 0a 0b  0c 0d 0e 0f   ................
+    0010:   10 11                                                ..
+    ... 1 (0x1) bytes not shown ..."#
+    );
 }
 
 #[cfg(feature = "alloc")]

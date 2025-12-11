@@ -64,6 +64,8 @@ pub struct HexConfig {
     pub max_bytes: usize,
     /// Offset added to displayed address prefix
     pub display_offset: usize,
+    /// Indentation level for each row
+    pub indent: usize,
 }
 
 /// Default configuration with `title`, `ascii`, 16 source bytes `width` grouped to 4 separate
@@ -78,6 +80,7 @@ impl Default for HexConfig {
             chunk: 1,
             max_bytes: usize::MAX,
             display_offset: 0,
+            indent: 0,
         }
     }
 }
@@ -98,6 +101,10 @@ impl HexConfig {
         } else {
             ""
         }
+    }
+
+    fn indent(&self) -> String {
+        " ".repeat(self.indent)
     }
 
     fn to_simple(self) -> Self {
@@ -131,7 +138,12 @@ where
 {
     let mut source = source.as_ref();
     if cfg.title {
-        writeln!(writer, "Length: {0} (0x{0:x}) bytes", source.len())?;
+        writeln!(
+            writer,
+            "{indent}Length: {0} (0x{0:x}) bytes",
+            source.len(),
+            indent = cfg.indent()
+        )?;
     }
 
     if source.is_empty() {
@@ -161,6 +173,7 @@ where
     let write_address = get_address_writer(max_address);
 
     for (i, row) in lines.enumerate() {
+        write!(writer, "{}", cfg.indent())?;
         if cfg.width > 0 {
             write_address(writer, i * cfg.width + cfg.display_offset)?;
         }
@@ -185,7 +198,12 @@ where
         }
     }
     if let Some(o) = omitted {
-        write!(writer, "\n... {0} (0x{0:x}) bytes not shown ...", o)?;
+        write!(
+            writer,
+            "\n{indent}... {0} (0x{0:x}) bytes not shown ...",
+            o,
+            indent = cfg.indent()
+        )?;
     }
     Ok(())
 }
